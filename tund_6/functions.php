@@ -19,6 +19,11 @@
 	    if(password_verify($password, $passwordFromDb)){
 		  //parool õige
 		  $notice = "Logisite õnnelikult sisse!";
+		  $stmt->close();
+	      $mysqli->close();
+		  header("Location: main.php");
+		  exit();
+		  
 		} else {
 		  $notice = "Sisestasite vale salasõna!";
         }
