@@ -4,14 +4,34 @@
   //echo $GLOBALS["serverUsername"];
   $database = "if18_rinde";
   
+  //võtan kasutusele sessiooni
+  session_start();
+  
+  //valideerimata sõnumite lugemine
+  function readallunvalidatedmessages(){
+	$notice = "<ul> \n";
+	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+	$stmt = $mysqli->prepare("SELECT id, message FROM vpamsg3 WHERE valid IS NULL ORDER BY id DESC");
+	echo $mysqli->error;
+	$stmt->bind_result($id, $msg);
+	$stmt->execute();
+	
+	while($stmt->fetch()){
+		$notice .= "<li>" .$msg .'<br><a href="validatemessage.php?id=' .$id .'">Valideeri</a>' ."</li> \n";
+	}
+	$stmt->close();
+	$mysqli->close();
+	return $notice;
+  }
+  
   //sisselogimine
   function signin($email, $password){
 	$notice = "";
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
-    $stmt = $mysqli->prepare("SELECT id, password FROM vpusers1 WHERE email=?");
+    $stmt = $mysqli->prepare("SELECT id, firstname, lastname, password FROM vpusers1 WHERE email=?");
 	$mysqli->error;
 	$stmt->bind_param("s", $email);
-	$stmt->bind_result($idFromDb, $passwordFromDb);
+	$stmt->bind_result($idFromDb, $firstnameFromDb, $lastnameFromDb, $passwordFromDb);
 	if($stmt->execute()){
 	  //kui õnnestus andmebaasist lugenine
 	  if($stmt->fetch()){
@@ -19,6 +39,9 @@
 	    if(password_verify($password, $passwordFromDb)){
 		  //parool õige
 		  $notice = "Logisite õnnelikult sisse!";
+		  $_SESSION["userId"] = $idFromDb;
+		  $_SESSION["firstName"] = $firstnameFromDb;
+		  $_SESSION["lastName"] = $lastnameFromDb;
 		  $stmt->close();
 	      $mysqli->close();
 		  header("Location: main.php");
