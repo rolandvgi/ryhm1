@@ -13,6 +13,10 @@
     header("Location: index_1.php");
 	exit();
   }
+  
+  if(isset($_GET["id"])){
+	$msg = readmsgforvalidation($_GET["id"]);  
+  }
 
 ?>
 <!DOCTYPE html>
