@@ -1,5 +1,18 @@
 <?php
   require("functions.php");
+  
+  //kui pole sisseloginud, siis logimise lehele
+  if(!isset($_SESSION["userId"])){
+	header("Location: index_1.php");
+	exit();  
+  }
+  
+  //logime välja
+  if(isset($_GET["logout"])){
+	session_destroy();
+    header("Location: index_1.php");
+	exit();
+  }
 
 ?>
 <!DOCTYPE html>
