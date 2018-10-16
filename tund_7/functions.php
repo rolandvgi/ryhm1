@@ -3,13 +3,48 @@
   $database = "if18_rinde";
   session_start();
   
+  //kõigi valideeritud sõnumite lugemine kasutrajate kaupa
+  function readallvalidatedmessagesbyuser(){
+	$msghtml = "";
+	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+	$stmt = $mysqli->prepare("SELECT id, firstname, lastname FROM vpusers1");
+	echo $mysqli->error;
+	$stmt->bind_result($idFromDb, $firstnameFromDb, $lastnameFromDb);
+	
+	$stmt2 = $mysqli->prepare("SELECT message, accepted FROM vpamsg1 WHERE acceptedby=?");
+	echo $mysqli->error;
+	$stmt2->bind_param("i", $idFromDb);
+	$stmt2->bind_result($msgFromDb, $acceptedFromDb);
+	
+	$stmt->execute();
+	//et hoida andmebaasisit loetud andmeid pisut kauem mälus, et saas edasi kasutada
+	$stmt->store_result();
+	while($stmt->fetch()){
+	  $msghtml .= "<h3>" .$firstnameFromDb ." " .$lastnameFromDb ."</h3> \n";
+	  $stmt2->execute();
+	  while($stmt2->fetch()){
+		$msghtml .= "<p><b>";
+		if($acceptedFromDb == 1){
+		  $msghtml .= "Lubatud: ";
+		} else {
+		  $msghtml .= "Keelatud: ";
+		}
+		$msghtml .= "</b>" .$msgFromDb ."</p> \n";
+	  }
+	}
+	$stmt2->close();
+	$stmt->close();
+	$mysqli->close();
+	return $msghtml;
+  }
+  
   //kasutajate nimekiri
   function listusers(){
 	$notice = "";
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
 	$stmt = $mysqli->prepare("SELECT firstname, lastname, email FROM vpusers1 WHERE id !=?");
 	
-	$mysqli->error;
+	echo $mysqli->error;
 	$stmt->bind_param("i", $_SESSION["userId"]);
 	$stmt->bind_result($firstname, $lastname, $email);
 	if($stmt->execute()){
