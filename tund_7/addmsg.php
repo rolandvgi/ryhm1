@@ -25,6 +25,8 @@
 	<h1>Sõnumi lisamine</h1>
 	<p>See leht on loodud <a href="http://www.tlu.ee" target="_blank">TLÜ</a> õppetöö raames, ei pruugi parim väljanäha ning kindlasti ei sisalda tõsiseltvõetavat sisu!</p>
 	<hr>
+	<p><a href="main.php">Tagasi pealehele</a></p>
+	<hr>
 	
 	<form method="POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
 	  <label>Sõnum (max 256 märki):</label>
@@ -35,6 +37,7 @@
     </form>
 	<hr>
 	<p><?php echo $notice; ?></p>
+	
 
 </body>
 </html>
