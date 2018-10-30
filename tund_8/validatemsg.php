@@ -13,13 +13,19 @@
 	exit();
   }
   
-  $messages = readallvalidatedmessagesbyuser();
+  $messages = readallunvalidatedmessages();
 ?>
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>Anonüümsed sõnumid</title>
+  <style>
+	  <?php
+        echo "body{background-color: " .$_SESSION["bgColor"] ."; \n";
+		echo "color: " .$_SESSION["txtColor"] ."} \n";
+	  ?>
+	</style>
 </head>
 <body>
   <h1>Sõnumid</h1>
@@ -30,7 +36,7 @@
 	<li><a href="main.php">Tagasi</a> pealehele!</li>
   </ul>
   <hr>
-  <h2>Valideeritud sõnumid valideerijate kaupa</h2>
+  <h2>Valideerimata sõnumid</h2>
   <?php
     echo $messages;
   ?>
