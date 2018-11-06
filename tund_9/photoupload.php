@@ -91,9 +91,23 @@
 				
 				$myImage = resizeImage($myTempImage, $imageWidth, $imageHeight, $newWidth, $newHeight);
 				
+				//vesimärk
+				$waterMark = imagecreatefrompng("../vp_picfiles/vp_logo_w100_overlay.png");
+				$waterMarkWidth = imagesx($waterMark);
+				$waterMarkHeight = imagesy($waterMark);
+				$waterMarkPosX = $newWidth - $waterMarkWidth - 10;
+				$waterMarkPosY = $newHeight - $waterMarkHeight - 10;
+				imagecopy($myImage, $waterMark, $waterMarkPosX, $waterMarkPosY, 0, 0, $waterMarkWidth, $waterMarkHeight);
+				
+				//tekst vesimärgina
+				$textToImage = "Veebiprogrammeerimine";
+				//                   MIS PILT, R, G, B, ALPHA 0 ... 127
+				$textColor = imagecolorallocatealpha($myImage, 255, 255, 255, 60);
+				imagettftext($myImage, 20, 0, 10, 30, $textColor, "../vp_picfiles/ARIALBD.TTF", $textToImage);
+				
 				//faili salvestamine, jälle sõltuvalt failitüübist
 				if($imageFileType == "jpg" or $imageFileType == "jpeg"){
-					if(imagejpeg($myImage, $target_file, 0)){
+					if(imagejpeg($myImage, $target_file, 90)){
 						echo "Fail ". basename( $_FILES["fileToUpload"]["name"]). " laeti edukalt üles!";
 					} else {
 						echo "Vabandame, faili üleslaadimisel tekkis tehniline viga!";
@@ -117,6 +131,7 @@
 				
 				imagedestroy($myTempImage);
 				imagedestroy($myImage);
+				imagedestroy($waterMark);
 				
 				/* if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
 					echo "Fail ". basename( $_FILES["fileToUpload"]["name"]). " laeti edukalt üles!";
