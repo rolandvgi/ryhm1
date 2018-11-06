@@ -30,7 +30,8 @@
 			//$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
 			$timeStamp = microtime(1) * 10000;
 			
-			$target_file = $target_dir ."vp_" .$timeStamp ."." .$imageFileType;
+			$target_file_name = "vp_" .$timeStamp ."." .$imageFileType;
+			$target_file = $target_dir .$target_file_name;
 			
 			
 			$check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
@@ -109,6 +110,7 @@
 				if($imageFileType == "jpg" or $imageFileType == "jpeg"){
 					if(imagejpeg($myImage, $target_file, 90)){
 						echo "Fail ". basename( $_FILES["fileToUpload"]["name"]). " laeti edukalt üles!";
+						addPhotoData($target_file_name, $_POST["altText"], $_POST["privacy"]);
 					} else {
 						echo "Vabandame, faili üleslaadimisel tekkis tehniline viga!";
 					}
@@ -116,6 +118,7 @@
 				if($imageFileType == "png"){
 					if(imagepng($myImage, $target_file, 6)){
 						echo "Fail ". basename( $_FILES["fileToUpload"]["name"]). " laeti edukalt üles!";
+						addPhotoData($target_file_name, $_POST["altText"], $_POST["privacy"]);
 					} else {
 						echo "Vabandame, faili üleslaadimisel tekkis tehniline viga!";
 					}
@@ -124,6 +127,7 @@
 				if($imageFileType == "gif"){
 					if(imagegif($myImage, $target_file)){
 						echo "Fail ". basename( $_FILES["fileToUpload"]["name"]). " laeti edukalt üles!";
+						addPhotoData($target_file_name, $_POST["altText"], $_POST["privacy"]);
 					} else {
 						echo "Vabandame, faili üleslaadimisel tekkis tehniline viga!";
 					}
@@ -165,6 +169,15 @@
 	<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="post" enctype="multipart/form-data">
     <label>Vali üleslaetav pildifail (soovitavalt mahuga kuni 2,5MB):</label><br>
 	<input type="file" name="fileToUpload" id="fileToUpload"><br>
+	<label>Alt tekst: </label>
+	<input type="text" name="altText">
+	<br>
+	<label>Määra pildi kasutusõigused</label>
+	<br>
+	<input type="radio" name="privacy" value="1"><label> Avalik pilt</label>
+	<input type="radio" name="privacy" value="2"><label> Ainult sisseloginud kasutajatele</label>
+	<input type="radio" name="privacy" value="3" checked><label> Privaatne</label>
+	<br>
     <input type="submit" value="Lae pilt üles" name="submitImage">
 </form>
 	
