@@ -3,6 +3,23 @@
   $database = "if18_rinde";
   session_start();
   
+  function addUserPhotoData($fileName){
+	$addedId = null;
+	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+    $stmt = $mysqli->prepare("INSERT INTO vp_user_pictures1 (userid, filename) VALUES (?, ?)");
+	echo $mysqli->error;
+	$stmt->bind_param("is", $_SESSION["userId"], $fileName);
+	if($stmt->execute()){
+	  $addedId = $mysqli->insert_id;
+	  //echo $addedId;
+	} else {
+	  echo $stmt->error;
+	}
+	return $addedId;
+	$stmt->close();
+	$mysqli->close();
+  }
+  
   function addPhotoData($fileName, $altText, $privacy){
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
 	$stmt = $mysqli->prepare("INSERT INTO vpphotos1 (userid, filename, alttext, privacy) VALUES (?, ?, ?, ?)");
@@ -41,7 +58,7 @@
   }
   
   //kasutajaprofiili salvestamine
-  function storeuserprofile($desc, $bgcol, $txtcol){
+  function storeuserprofile($desc, $bgcol, $txtcol, $picId){
 	$notice = "";
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
     $stmt = $mysqli->prepare("SELECT description, bgcolor, txtcolor FROM vpuserprofiles1 WHERE userid=?");
@@ -52,9 +69,17 @@
 	if($stmt->fetch()){
 		//profiil juba olemas, uuendame
 		$stmt->close();
-		$stmt = $mysqli->prepare("UPDATE vpuserprofiles1 SET description=?, bgcolor=?, txtcolor=? WHERE userid=?");
-		echo $mysqli->error;
-		$stmt->bind_param("sssi", $desc, $bgcol, $txtcol, $_SESSION["userId"]);
+		//kui on pilt lisatud
+		if(!empty($picId)){
+		  $stmt = $mysqli->prepare("UPDATE vpuserprofiles1 SET description=?, bgcolor=?, txtcolor=?, picture=? WHERE userid=?");
+		  echo $mysqli->error;
+		  $stmt->bind_param("sssii", $desc, $bgcol, $txtcol, $picId, $_SESSION["userId"]);
+		} else {
+		  $stmt = $mysqli->prepare("UPDATE vpuserprofiles1 SET description=?, bgcolor=?, txtcolor=? WHERE userid=?");
+		  echo $mysqli->error;
+		  $stmt->bind_param("sssi", $desc, $bgcol, $txtcol, $_SESSION["userId"]);
+		}
+		
 		if($stmt->execute()){
 			$notice = "Profiil edukalt uuendatud!";
 			$_SESSION["bgColor"] = $bgcol;
@@ -65,10 +90,17 @@
 	} else {
 		//profiili pole, salvestame
 		$stmt->close();
-		//INSERT INTO vpusers3 (firstname, lastname, birthdate, gender, email, password) VALUES(?,?,?,?,?,?)"
-		$stmt = $mysqli->prepare("INSERT INTO vpuserprofiles1 (userid, description, bgcolor, txtcolor) VALUES(?,?,?,?)");
-		echo $mysqli->error;
-		$stmt->bind_param("isss", $_SESSION["userId"], $desc, $bgcol, $txtcol);
+		//kui on pilt ka lisatud
+		if(!empty($picId)){
+		  $stmt = $mysqli->prepare("INSERT INTO vpuserprofiles1 (userid, description, bgcolor, txtcolor, picture) VALUES(?,?,?,?,?)");
+		  echo $mysqli->error;
+		  $stmt->bind_param("isssi", $_SESSION["userId"], $desc, $bgcol, $txtcol, $picId);
+		} else {
+		  //INSERT INTO vpusers3 (firstname, lastname, birthdate, gender, email, password) VALUES(?,?,?,?,?,?)"
+		  $stmt = $mysqli->prepare("INSERT INTO vpuserprofiles1 (userid, description, bgcolor, txtcolor) VALUES(?,?,?,?)");
+		  echo $mysqli->error;
+		  $stmt->bind_param("isss", $_SESSION["userId"], $desc, $bgcol, $txtcol);
+		}
 		if($stmt->execute()){
 			$notice = "Profiil edukalt salvestatud!";
 			$_SESSION["bgColor"] = $bgcol;
@@ -85,22 +117,36 @@
   //kasutajaprofiili väljastamine
   function showmyprofile(){
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
-    $stmt = $mysqli->prepare("SELECT description, bgcolor, txtcolor FROM vpuserprofiles1 WHERE userid=?");
+    $stmt = $mysqli->prepare("SELECT description, bgcolor, txtcolor, picture FROM vpuserprofiles1 WHERE userid=?");
 	echo $mysqli->error;
 	$stmt->bind_param("i", $_SESSION["userId"]);
-	$stmt->bind_result($description, $bgcolor, $txtcolor);
+	$stmt->bind_result($description, $bgcolor, $txtcolor, $picture);
 	$stmt->execute();
 	$profile = new Stdclass();
 	if($stmt->fetch()){
 		$profile->description = $description;
 		$profile->bgcolor = $bgcolor;
 		$profile->txtcolor = $txtcolor;
+		$profile->picture = $picture;
 	} else {
 		$profile->description = "";
 		$profile->bgcolor = "";
 		$profile->txtcolor = "";
+		$profile->picture = null;
 	}
 	$stmt->close();
+	//kui on pilt olemas
+	if(!empty($profile->picture)){
+	  $stmt = $mysqli->prepare("SELECT filename FROM vp_user_pictures1 WHERE id=?");
+	  echo $mysqli->error;
+	  $stmt->bind_param("i", $profile->picture);
+	  $stmt->bind_result($pictureFile);
+	  $stmt->execute();
+	  if($stmt->fetch()){
+		$profile->picture = $pictureFile;  
+	  }
+	  $stmt->close();
+	}
 	$mysqli->close();
 	return $profile;
   }
